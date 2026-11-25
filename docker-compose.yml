@@ -1,0 +1,30 @@
+# Chạy với database bên ngoài (Supabase): chỉ có backend + frontend.
+#   docker compose up --build
+# Muốn dùng PostgreSQL trong Docker (chạy thử trên máy): xem docker-compose.local.yml
+services:
+  backend:
+    build: ./backend
+    restart: unless-stopped
+    environment:
+      DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY:-change-me-in-production}
+      DJANGO_DEBUG: ${DJANGO_DEBUG:-0}
+      DJANGO_ALLOWED_HOSTS: ${DJANGO_ALLOWED_HOSTS:-*}
+      DJANGO_CSRF_TRUSTED_ORIGINS: ${DJANGO_CSRF_TRUSTED_ORIGINS:-http://localhost:3000,http://localhost:8000}
+      DJANGO_CORS_ALLOWED_ORIGINS: ${DJANGO_CORS_ALLOWED_ORIGINS:-http://localhost:3000,http://localhost:5173}
+      DATABASE_URL: ${DATABASE_URL:-}
+      DATABASE_SSL_REQUIRE: ${DATABASE_SSL_REQUIRE:-1}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      SEED_DEMO_DATA: ${SEED_DEMO_DATA:-0}
+    ports:
+      - "8000:8000"
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        VITE_SHOW_DEMO: ${VITE_SHOW_DEMO:-0}
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "3000:80"

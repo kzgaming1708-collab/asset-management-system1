@@ -1,0 +1,2 @@
+# Giữ LF cho shell script để chạy được trong container Linux
+*.sh text eol=lf

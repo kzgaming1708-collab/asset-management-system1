@@ -1,0 +1,38 @@
+# Ghép thêm vào docker-compose.yml để chạy PostgreSQL ngay trong Docker (không cần Supabase):
+#   docker compose -f docker-compose.yml -f docker-compose.local.yml up --build
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-assetdb}
+      POSTGRES_USER: ${POSTGRES_USER:-assetuser}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-assetpass}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-assetuser} -d ${POSTGRES_DB:-assetdb}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    environment:
+      DATABASE_URL: ""
+      POSTGRES_HOST: db
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: ${POSTGRES_DB:-assetdb}
+      POSTGRES_USER: ${POSTGRES_USER:-assetuser}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-assetpass}
+      SEED_DEMO_DATA: ${SEED_DEMO_DATA:-1}
+    depends_on:
+      db:
+        condition: service_healthy
+
+  frontend:
+    build:
+      args:
+        VITE_SHOW_DEMO: ${VITE_SHOW_DEMO:-1}
+
+volumes:
+  pgdata:
